@@ -46,6 +46,9 @@ type PoolUsageCollector struct {
 	// http://lists.ceph.com/pipermail/ceph-users-ceph.com/2015-April/000557.html
 	DirtyObjects *prometheus.GaugeVec
 
+	// KBUsed
+	KBUsed *prometheus.GaugeVec
+
 	// ReadIO tracks the read IO calls made for the images within each pool.
 	ReadIO *prometheus.GaugeVec
 
@@ -123,6 +126,16 @@ func NewPoolUsageCollector(conn Conn, cluster string) *PoolUsageCollector {
 			},
 			poolLabel,
 		),
+		KBUsed : prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace:   cephNamespace,
+				Subsystem:	 subSystem,
+				Name:				 "doyeon_test_kb_used",
+				Help:				 "just test to add the featrue about pool",
+				ConstLabels: labels,
+			},
+			poolLabel,
+		),
 		ReadIO: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace:   cephNamespace,
@@ -173,6 +186,7 @@ func (p *PoolUsageCollector) collectorList() []prometheus.Collector {
 		p.MaxAvail,
 		p.Objects,
 		p.DirtyObjects,
+		p.KBUsed,
 		p.ReadIO,
 		p.ReadBytes,
 		p.WriteIO,
@@ -190,6 +204,7 @@ type cephPoolStats struct {
 			MaxAvail     float64 `json:"max_avail"`
 			Objects      float64 `json:"objects"`
 			DirtyObjects float64 `json:"dirty"`
+			KBUsed			 float64 `json:"kb_used"`
 			ReadIO       float64 `json:"rd"`
 			ReadBytes    float64 `json:"rd_bytes"`
 			WriteIO      float64 `json:"wr"`
@@ -216,6 +231,7 @@ func (p *PoolUsageCollector) collect() error {
 		p.MaxAvail.WithLabelValues(pool.Name).Set(pool.Stats.MaxAvail)
 		p.Objects.WithLabelValues(pool.Name).Set(pool.Stats.Objects)
 		p.DirtyObjects.WithLabelValues(pool.Name).Set(pool.Stats.DirtyObjects)
+		p.KBUsed.WithLabelValues(pool.Name).Set(pool.Stats.KBUsed)
 		p.ReadIO.WithLabelValues(pool.Name).Set(pool.Stats.ReadIO)
 		p.ReadBytes.WithLabelValues(pool.Name).Set(pool.Stats.ReadBytes)
 		p.WriteIO.WithLabelValues(pool.Name).Set(pool.Stats.WriteIO)
